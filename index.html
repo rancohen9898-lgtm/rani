@@ -1,12 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Rani GitHub Page</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Management Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+        }
+        .logo {
+            font-size: 2rem;
+            color: #2563eb;
+        }
+        .action-buttons {
+            display: flex;
+        }
+        .action-button {
+            margin-left: 0.5rem;
+            background-color: #2563eb;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .action-button:hover {
+            background-color: #1e293b;
+        }
+
+        .dashboard-section {
+            margin-bottom: 2rem;
+        }
+        .section-header {
+            font-size: 1.5rem;
+            color: #1e293b;
+            padding-bottom: 0.75rem;
+        }
+    </style>
 </head>
 <body>
-  <h1>זה עובד 🚀</h1>
-  <p>ברוך הבא ל-GitHub Pages</p>
+
+<div class="container">
+    <div class="header">
+        <h1 class="logo">Course Management</h1>
+        <div class="action-buttons">
+            <button class="action-button">Add Course</button>
+            <button class="action-button">Settings</button>
+        </div>
+    </div>
+
+    <div class="dashboard-section">
+        <h2 class="section-header">Recent Activity</h2>
+        <!-- Recent activity feed goes here -->
+        <ul class="activity-feed">
+            <li>
+                <img src="avatar1.jpg" alt="User Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+                <span>User John Doe added a new course.</span>
+                <small>2 hours ago</small>
+            </li>
+            <!-- More activity items -->
+        </ul>
+    </div>
+
+    <div class="dashboard-section">
+        <h2 class="section-header">Courses</h2>
+        <!-- Course cards go here -->
+        <div class="course-cards">
+            <div class="course-card" style="background-color: #e6f7fa;">
+                <img src="cover1.jpg" alt="Course Cover" class="card-image">
+                <h3>Introduction to React</h3>
+                <p class="description">Learn the basics of React with hands-on exercises.</p>
+            </div>
+            <!-- More course cards -->
+        </div>
+    </div>
+
+    <div class="dashboard-section">
+        <h2 class="section-header">Students</h2>
+        <!-- Student data table goes here -->
+        <table class="student-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Enrollment Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>User Name</td>
+                    <td>user@example.com</td>
+                    <td><span class="enrollment-status-badge" style="background-color: #10b981;">Enrolled</span></td>
+                    <td><button class="action-button">View Profile</button></td>
+                </tr>
+                <!-- More student rows -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Basic JavaScript for interactivity (e.g., hover effects, animations)
+    document.querySelectorAll('.course-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'scale(1.05)';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'scale(1)';
+        });
+    });
+
+    // More JavaScript for additional functionality (e.g., AJAX requests)
+</script>
+
 </body>
 </html>
-
