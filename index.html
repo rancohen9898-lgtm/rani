@@ -1,136 +1,1441 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" class="h-full">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Course Management Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f8fafc;
-            color: #1e293b;
-        }
-        .container {
-            max-width: 1440px;
-            margin: 0 auto;
-            padding: 2rem;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 1rem;
-        }
-        .logo {
-            font-size: 2rem;
-            color: #2563eb;
-        }
-        .action-buttons {
-            display: flex;
-        }
-        .action-button {
-            margin-left: 0.5rem;
-            background-color: #2563eb;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .action-button:hover {
-            background-color: #1e293b;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CourseOS — Modern Course Management System (Single-File Demo)</title>
 
-        .dashboard-section {
-            margin-bottom: 2rem;
+  <!-- Inter (fallback to system stack) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Tailwind theme tokens (professional palette)
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'Apple Color Emoji', 'Segoe UI Emoji'],
+          },
+          colors: {
+            primary: '#2563eb',
+            secondary: '#64748b',
+            accent: '#10b981',
+            bg: '#f8fafc',
+            text: '#1e293b',
+          },
+          borderRadius: { 'xl': '12px' },
+          boxShadow: {
+            soft: '0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08)',
+          },
+          transitionTimingFunction: { smooth: 'cubic-bezier(0.4, 0, 0.2, 1)' },
+          transitionDuration: { 300: '300ms' },
         }
-        .section-header {
-            font-size: 1.5rem;
-            color: #1e293b;
-            padding-bottom: 0.75rem;
-        }
-    </style>
+      }
+    }
+  </script>
+
+  <style>
+    :root { color-scheme: light; }
+    html.dark { color-scheme: dark; }
+    /* 8px base spacing is naturally supported by Tailwind scale; this ensures consistent rhythm in custom pieces */
+    .focus-ring:focus { outline: none; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35); }
+    .skeleton {
+      background: linear-gradient(90deg, rgba(148,163,184,0.18) 25%, rgba(148,163,184,0.32) 37%, rgba(148,163,184,0.18) 63%);
+      background-size: 400% 100%;
+      animation: shimmer 1.2s ease-in-out infinite;
+    }
+    @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+
+    /* Accessible “skip to content” */
+    .skip-link {
+      position: absolute; left: 8px; top: 8px; transform: translateY(-140%);
+      transition: transform 300ms ease-in-out;
+      z-index: 9999;
+    }
+    .skip-link:focus { transform: translateY(0); }
+
+    /* Chart.js tooltip polishing */
+    .chart-wrap canvas { max-height: 260px; }
+
+    /* Minimal diff view */
+    .diff-line { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+  </style>
 </head>
-<body>
 
-<div class="container">
-    <div class="header">
-        <h1 class="logo">Course Management</h1>
-        <div class="action-buttons">
-            <button class="action-button">Add Course</button>
-            <button class="action-button">Settings</button>
-        </div>
-    </div>
+<body class="h-full bg-bg text-text dark:bg-slate-950 dark:text-slate-100 antialiased">
+  <a href="#main" class="skip-link focus-ring rounded-lg bg-white dark:bg-slate-900 px-3 py-2 text-sm shadow-soft">
+    Skip to content
+  </a>
 
-    <div class="dashboard-section">
-        <h2 class="section-header">Recent Activity</h2>
-        <!-- Recent activity feed goes here -->
-        <ul class="activity-feed">
-            <li>
-                <img src="avatar1.jpg" alt="User Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
-                <span>User John Doe added a new course.</span>
-                <small>2 hours ago</small>
-            </li>
-            <!-- More activity items -->
-        </ul>
-    </div>
+  <div id="root" class="h-full"></div>
 
-    <div class="dashboard-section">
-        <h2 class="section-header">Courses</h2>
-        <!-- Course cards go here -->
-        <div class="course-cards">
-            <div class="course-card" style="background-color: #e6f7fa;">
-                <img src="cover1.jpg" alt="Course Cover" class="card-image">
-                <h3>Introduction to React</h3>
-                <p class="description">Learn the basics of React with hands-on exercises.</p>
+  <!-- React 18 -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+  <!-- Babel (JSX + TypeScript) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- TanStack Query (React Query) UMD -->
+  <script src="https://unpkg.com/@tanstack/react-query@5/build/umd/index.production.js"></script>
+
+  <!-- React Hook Form UMD -->
+  <script src="https://unpkg.com/react-hook-form@7.52.2/dist/index.umd.js"></script>
+
+  <!-- Framer Motion UMD -->
+  <script src="https://unpkg.com/framer-motion@11.0.0/dist/framer-motion.umd.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- i18next -->
+  <script src="https://unpkg.com/i18next@23.11.5/i18next.min.js"></script>
+  <script src="https://unpkg.com/i18next-browser-languagedetector@7.2.1/i18nextBrowserLanguageDetector.min.js"></script>
+
+  <script type="text/babel" data-presets="env,react,typescript">
+    /* ============================================================
+       Single-file, production-style demo UI
+       - React 18 + TS (in-browser transpile)
+       - Tailwind styling + dark mode
+       - TanStack Query mock server state
+       - React Hook Form validation
+       - Framer Motion micro-animations
+       - Chart.js analytics widgets
+       - i18n, RBAC, notifications, skeletons, infinite scroll
+       - WCAG-minded components + ARIA
+       ============================================================ */
+
+    const React = window.React;
+    const { createRoot } = window.ReactDOM;
+
+    const { QueryClient, QueryClientProvider, useQuery, useMutation, useQueryClient } = window.ReactQuery;
+    const { useForm, Controller } = window.ReactHookForm;
+    const { motion, AnimatePresence } = window.FramerMotion;
+
+    /** ------------------------------
+     * Types (TypeScript)
+     * ------------------------------ */
+    type Role = "admin" | "instructor" | "viewer";
+
+    interface User {
+      id: string;
+      name: string;
+      email: string;
+      role: Role;
+      avatarUrl?: string;
+    }
+
+    type EnrollmentStatus = "active" | "pending" | "suspended";
+
+    interface Student {
+      id: string;
+      name: string;
+      email: string;
+      status: EnrollmentStatus;
+      enrolledCourseIds: string[];
+      createdAt: number;
+      avatarUrl?: string;
+    }
+
+    interface Course {
+      id: string;
+      title: string;
+      description: string;
+      coverUrl: string;
+      progress: number; // 0..1
+      tags: string[];
+      updatedAt: number;
+    }
+
+    interface ActivityItem {
+      id: string;
+      type: "course" | "student" | "content" | "system";
+      message: string;
+      userName?: string;
+      timestamp: number;
+    }
+
+    interface ContentVersion {
+      id: string;
+      contentId: string;
+      version: number;
+      updatedAt: number;
+      author: string;
+      snapshot: string;
+    }
+
+    interface ContentItem {
+      id: string;
+      title: string;
+      type: "lesson" | "assignment" | "resource";
+      body: string;
+      updatedAt: number;
+      versions: ContentVersion[];
+      media: { id: string; name: string; url: string; type: "image" | "pdf" | "video" }[];
+    }
+
+    /** ------------------------------
+     * Utilities
+     * ------------------------------ */
+    const uid = () => Math.random().toString(16).slice(2) + "-" + Date.now().toString(16);
+
+    const fmtRelative = (ts: number) => {
+      const diff = Date.now() - ts;
+      const s = Math.floor(diff / 1000);
+      if (s < 60) return `${s}s`;
+      const m = Math.floor(s / 60);
+      if (m < 60) return `${m}m`;
+      const h = Math.floor(m / 60);
+      if (h < 48) return `${h}h`;
+      const d = Math.floor(h / 24);
+      return `${d}d`;
+    };
+
+    const debounce = <T extends (...args: any[]) => void>(fn: T, wait = 250) => {
+      let t: number | undefined;
+      return (...args: Parameters<T>) => {
+        window.clearTimeout(t);
+        // @ts-ignore
+        t = window.setTimeout(() => fn(...args), wait);
+      };
+    };
+
+    const downloadText = (filename: string, text: string, mime="text/plain") => {
+      const blob = new Blob([text], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    };
+
+    /** ------------------------------
+     * i18n setup
+     * ------------------------------ */
+    const resources = {
+      en: {
+        translation: {
+          appName: "CourseOS",
+          dashboard: "Dashboard",
+          courses: "Courses",
+          students: "Students",
+          content: "Content",
+          analytics: "Analytics",
+          search: "Search",
+          role: "Role",
+          darkMode: "Dark mode",
+          language: "Language",
+          notifications: "Notifications",
+          quickActions: "Quick actions",
+          createCourse: "Create course",
+          addStudent: "Add student",
+          uploadMedia: "Upload media",
+          export: "Export",
+          status: "Status",
+          active: "Active",
+          pending: "Pending",
+          suspended: "Suspended",
+          profile: "Profile",
+          save: "Save",
+          cancel: "Cancel",
+          close: "Close",
+          advancedSearch: "Advanced search",
+          filter: "Filter",
+          reset: "Reset",
+          loading: "Loading",
+          empty: "No results found",
+          rbacDenied: "You don’t have permission for that action.",
+          toasts: {
+            saved: "Saved successfully",
+            deleted: "Deleted",
+            updated: "Updated",
+            exported: "Export started",
+            uploaded: "Uploaded",
+          }
+        }
+      },
+      he: {
+        translation: {
+          appName: "CourseOS",
+          dashboard: "דשבורד",
+          courses: "קורסים",
+          students: "סטודנטים",
+          content: "תוכן",
+          analytics: "אנליטיקות",
+          search: "חיפוש",
+          role: "תפקיד",
+          darkMode: "מצב כהה",
+          language: "שפה",
+          notifications: "התראות",
+          quickActions: "פעולות מהירות",
+          createCourse: "יצירת קורס",
+          addStudent: "הוספת סטודנט",
+          uploadMedia: "העלאת מדיה",
+          export: "ייצוא",
+          status: "סטטוס",
+          active: "פעיל",
+          pending: "בהמתנה",
+          suspended: "מושהה",
+          profile: "פרופיל",
+          save: "שמירה",
+          cancel: "ביטול",
+          close: "סגירה",
+          advancedSearch: "חיפוש מתקדם",
+          filter: "סינון",
+          reset: "איפוס",
+          loading: "טוען",
+          empty: "לא נמצאו תוצאות",
+          rbacDenied: "אין לך הרשאה לפעולה הזו.",
+          toasts: {
+            saved: "נשמר בהצלחה",
+            deleted: "נמחק",
+            updated: "עודכן",
+            exported: "הייצוא התחיל",
+            uploaded: "הועלה",
+          }
+        }
+      }
+    };
+
+    i18next
+      .use(window.i18nextBrowserLanguageDetector)
+      .init({
+        resources,
+        fallbackLng: "en",
+        interpolation: { escapeValue: false }
+      });
+
+    const useT = () => {
+      const [lng, setLng] = React.useState(i18next.language || "en");
+      React.useEffect(() => {
+        const h = () => setLng(i18next.language);
+        i18next.on("languageChanged", h);
+        return () => i18next.off("languageChanged", h);
+      }, []);
+      return (key: string) => i18next.t(key);
+    };
+
+    /** ------------------------------
+     * Theme + App state
+     * ------------------------------ */
+    const ThemeContext = React.createContext<{dark: boolean; toggle: () => void}>({dark: false, toggle: () => {}});
+    const useTheme = () => React.useContext(ThemeContext);
+
+    const ToastContext = React.createContext<{push: (msg: string, kind?: "success" | "error" | "info") => void}>({push: () => {}});
+    const useToast = () => React.useContext(ToastContext);
+
+    const AuthContext = React.createContext<{
+      user: User;
+      setRole: (role: Role) => void;
+    } | null>(null);
+    const useAuth = () => {
+      const ctx = React.useContext(AuthContext);
+      if (!ctx) throw new Error("AuthContext missing");
+      return ctx;
+    };
+
+    const NotifContext = React.createContext<{
+      count: number;
+      items: {id: string; title: string; body: string; ts: number; read: boolean}[];
+      markAllRead: () => void;
+      add: (title: string, body: string) => void;
+    } | null>(null);
+    const useNotifs = () => {
+      const ctx = React.useContext(NotifContext);
+      if (!ctx) throw new Error("NotifContext missing");
+      return ctx;
+    };
+
+    /** ------------------------------
+     * Mock API (simulates backend)
+     * - In real system: Node/Express + Prisma/Postgres + Redis + JWT refresh tokens
+     * - This demo uses in-memory data + latency for loading states
+     * ------------------------------ */
+    const seedCovers = [
+      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80",
+    ];
+
+    const mockDb = (() => {
+      const now = Date.now();
+      const courses: Course[] = Array.from({ length: 12 }).map((_, i) => ({
+        id: `c-${i+1}`,
+        title: ["React Foundations", "Data Modeling", "UX for Systems", "Analytics Mastery", "Security Essentials", "Product Ops", "SQL Advanced", "APIs & Integrations", "Cloud Basics", "Testing Strategies", "Design Systems", "Leadership 101"][i],
+        description: "A modern, outcomes-driven course with practical projects and clear progression.",
+        coverUrl: seedCovers[i % seedCovers.length],
+        progress: Math.max(0.08, Math.min(0.96, (i+1) / 13)),
+        tags: (i % 3 === 0) ? ["Beginner", "Popular"] : (i % 3 === 1) ? ["Intermediate"] : ["Advanced"],
+        updatedAt: now - (i * 1000 * 60 * 60 * 9),
+      }));
+
+      const students: Student[] = Array.from({ length: 220 }).map((_, i) => {
+        const status: EnrollmentStatus = (i % 9 === 0) ? "suspended" : (i % 4 === 0) ? "pending" : "active";
+        return {
+          id: `s-${i+1}`,
+          name: `Student ${i+1}`,
+          email: `student${i+1}@example.com`,
+          status,
+          enrolledCourseIds: [courses[i % courses.length].id],
+          createdAt: now - (i * 1000 * 60 * 8),
+          avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=Student%20${i+1}`,
+        };
+      });
+
+      const content: ContentItem[] = [
+        {
+          id: "ct-1",
+          title: "Lesson: Course Overview",
+          type: "lesson",
+          body: "<h2>Welcome</h2><p>This is a lightweight rich text editor demo. Use the toolbar to format content.</p><ul><li>Structure</li><li>Clarity</li><li>Progress</li></ul>",
+          updatedAt: now - 1000 * 60 * 60 * 14,
+          versions: [],
+          media: [
+            { id: "m-1", name: "cover.png", url: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=900&q=80", type: "image" },
+            { id: "m-2", name: "handout.pdf", url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", type: "pdf" },
+          ],
+        },
+        {
+          id: "ct-2",
+          title: "Assignment: Build a Dashboard",
+          type: "assignment",
+          body: "<h2>Assignment</h2><p>Create a responsive dashboard with cards, charts and accessibility support.</p>",
+          updatedAt: now - 1000 * 60 * 60 * 40,
+          versions: [],
+          media: [],
+        }
+      ];
+
+      const activity: ActivityItem[] = [
+        { id: uid(), type: "system", message: "Security policy updated: session limits + rate limiting enabled.", timestamp: now - 1000 * 60 * 5 },
+        { id: uid(), type: "course", message: "Course “React Foundations” updated with new lesson content.", userName: "Ava", timestamp: now - 1000 * 60 * 18 },
+        { id: uid(), type: "student", message: "New student enrolled: Student 44", userName: "System", timestamp: now - 1000 * 60 * 52 },
+        { id: uid(), type: "content", message: "Media uploaded: handout.pdf", userName: "Noah", timestamp: now - 1000 * 60 * 120 },
+      ];
+
+      return { courses, students, content, activity };
+    })();
+
+    const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+    const api = {
+      async getDashboard() {
+        await sleep(450);
+        const totalCourses = mockDb.courses.length;
+        const totalStudents = mockDb.students.length;
+        const activeEnrollments = mockDb.students.filter(s => s.status === "active").length;
+        const completionAvg = mockDb.courses.reduce((a,c)=>a+c.progress, 0) / totalCourses;
+
+        // Chart data
+        const enrollByDay = Array.from({ length: 7 }).map((_, idx) => {
+          const d = 6 - idx;
+          const val = 10 + Math.round(Math.random() * 30);
+          return { label: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][idx], value: val + (d*2) };
+        });
+
+        const progressBuckets = [0,0,0,0,0]; // 0-20..80-100
+        mockDb.courses.forEach(c => {
+          const p = Math.floor(c.progress * 100);
+          const b = Math.min(4, Math.floor(p / 20));
+          progressBuckets[b] += 1;
+        });
+
+        return {
+          metrics: {
+            totalCourses,
+            totalStudents,
+            activeEnrollments,
+            completionAvg,
+          },
+          activity: mockDb.activity.slice(0, 8),
+          enrollByDay,
+          progressBuckets
+        };
+      },
+
+      async listCourses() {
+        await sleep(520);
+        return mockDb.courses.slice().sort((a,b)=>b.updatedAt-a.updatedAt);
+      },
+
+      async reorderCourses(newOrder: string[]) {
+        await sleep(280);
+        const map = new Map(mockDb.courses.map(c => [c.id, c]));
+        mockDb.courses = newOrder.map(id => map.get(id)!).filter(Boolean);
+        return { ok: true };
+      },
+
+      async createCourse(payload: Pick<Course, "title"|"description"|"tags">) {
+        await sleep(420);
+        const c: Course = {
+          id: uid(),
+          title: payload.title,
+          description: payload.description,
+          coverUrl: seedCovers[Math.floor(Math.random() * seedCovers.length)],
+          progress: 0.05,
+          tags: payload.tags,
+          updatedAt: Date.now(),
+        };
+        mockDb.courses.unshift(c);
+        mockDb.activity.unshift({ id: uid(), type: "course", message: `Course created: “${c.title}”`, userName: "You", timestamp: Date.now() });
+        return c;
+      },
+
+      async listStudents(page: number, pageSize: number, query: string) {
+        await sleep(520);
+        const q = query.trim().toLowerCase();
+        const filtered = q
+          ? mockDb.students.filter(s =>
+              s.name.toLowerCase().includes(q) ||
+              s.email.toLowerCase().includes(q) ||
+              s.status.toLowerCase().includes(q)
+            )
+          : mockDb.students;
+
+        const total = filtered.length;
+        const start = (page-1) * pageSize;
+        const data = filtered.slice(start, start + pageSize);
+        return { data, total };
+      },
+
+      async updateStudent(id: string, patch: Partial<Student>) {
+        await sleep(360);
+        const idx = mockDb.students.findIndex(s => s.id === id);
+        if (idx >= 0) {
+          mockDb.students[idx] = { ...mockDb.students[idx], ...patch };
+          mockDb.activity.unshift({ id: uid(), type: "student", message: `Student updated: ${mockDb.students[idx].name}`, userName: "You", timestamp: Date.now() });
+        }
+        return mockDb.students[idx];
+      },
+
+      async listContent() {
+        await sleep(480);
+        return mockDb.content.slice().sort((a,b)=>b.updatedAt-a.updatedAt);
+      },
+
+      async saveContent(id: string, body: string, author: string) {
+        await sleep(520);
+        const item = mockDb.content.find(c => c.id === id);
+        if (!item) throw new Error("Not found");
+
+        const prev = item.body;
+        const nextVersion = (item.versions.at(-1)?.version || 0) + 1;
+        const v: ContentVersion = {
+          id: uid(),
+          contentId: id,
+          version: nextVersion,
+          updatedAt: Date.now(),
+          author,
+          snapshot: prev,
+        };
+        item.versions.push(v);
+        item.body = body;
+        item.updatedAt = Date.now();
+        mockDb.activity.unshift({ id: uid(), type: "content", message: `Content updated: “${item.title}” (v${nextVersion})`, userName: author, timestamp: Date.now() });
+        return item;
+      },
+
+      async uploadMedia(contentId: string, files: File[]) {
+        await sleep(700);
+        const item = mockDb.content.find(c => c.id === contentId);
+        if (!item) throw new Error("Not found");
+        files.forEach(f => {
+          // demo: create local object url
+          const url = URL.createObjectURL(f);
+          const type = f.type.includes("pdf") ? "pdf" : f.type.includes("video") ? "video" : "image";
+          item.media.unshift({ id: uid(), name: f.name, url, type: type as any });
+        });
+        item.updatedAt = Date.now();
+        mockDb.activity.unshift({ id: uid(), type: "content", message: `Media uploaded: ${files.map(f=>f.name).join(", ")}`, userName: "You", timestamp: Date.now() });
+        return item.media;
+      },
+
+      async getAnalytics() {
+        await sleep(600);
+        // Simple mock series
+        const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].slice(0, 8);
+        const engagement = months.map((m, i) => ({ m, v: 40 + i*6 + Math.round(Math.random()*10) }));
+        const completion = months.map((m, i) => ({ m, v: 22 + i*4 + Math.round(Math.random()*8) }));
+        const topCourses = mockDb.courses.slice(0, 5).map(c => ({ title: c.title, score: Math.round(60 + c.progress*40) }));
+        return { months, engagement, completion, topCourses };
+      }
+    };
+
+    /** ------------------------------
+     * RBAC helper
+     * ------------------------------ */
+    const can = (role: Role, action: "course:create" | "course:bulk" | "student:edit" | "content:edit" | "export:any") => {
+      const matrix: Record<Role, Record<string, boolean>> = {
+        admin: {
+          "course:create": true, "course:bulk": true,
+          "student:edit": true, "content:edit": true,
+          "export:any": true,
+        },
+        instructor: {
+          "course:create": true, "course:bulk": true,
+          "student:edit": true, "content:edit": true,
+          "export:any": true,
+        },
+        viewer: {
+          "course:create": false, "course:bulk": false,
+          "student:edit": false, "content:edit": false,
+          "export:any": true,
+        }
+      };
+      return !!matrix[role][action];
+    };
+
+    /** ------------------------------
+     * Error Boundary
+     * ------------------------------ */
+    class ErrorBoundary extends React.Component<{children: any}, {hasError: boolean; message?: string}> {
+      constructor(props: any) { super(props); this.state = { hasError: false }; }
+      static getDerivedStateFromError(err: any) { return { hasError: true, message: err?.message || "Unknown error" }; }
+      componentDidCatch(err: any) { console.error("ErrorBoundary:", err); }
+      render() {
+        if (this.state.hasError) {
+          return (
+            <div className="p-6">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-soft">
+                <div className="text-lg font-semibold">Something went wrong</div>
+                <p className="mt-2 text-sm text-secondary dark:text-slate-300">{this.state.message}</p>
+                <button
+                  className="mt-4 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-white transition duration-300 ease-smooth hover:opacity-90 focus-ring"
+                  onClick={() => location.reload()}
+                >
+                  Reload
+                </button>
+              </div>
             </div>
-            <!-- More course cards -->
+          );
+        }
+        return this.props.children;
+      }
+    }
+
+    /** ------------------------------
+     * Toasts
+     * ------------------------------ */
+    function ToastProvider({ children }: { children: any }) {
+      const [toasts, setToasts] = React.useState<{id: string; msg: string; kind: "success"|"error"|"info"}[]>([]);
+      const push = (msg: string, kind: "success"|"error"|"info" = "info") => {
+        const id = uid();
+        setToasts(t => [...t, { id, msg, kind }]);
+        window.setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3200);
+      };
+
+      return (
+        <ToastContext.Provider value={{ push }}>
+          {children}
+          <div aria-live="polite" aria-relevant="additions" className="fixed right-4 top-4 z-[9999] space-y-2">
+            <AnimatePresence>
+              {toasts.map(t => (
+                <motion.div
+                  key={t.id}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.25 }}
+                  className={[
+                    "rounded-xl px-4 py-3 shadow-soft border",
+                    "bg-white dark:bg-slate-900",
+                    t.kind === "success" ? "border-emerald-200 dark:border-emerald-900" :
+                    t.kind === "error" ? "border-rose-200 dark:border-rose-900" :
+                    "border-slate-200 dark:border-slate-800"
+                  ].join(" ")}
+                  role="status"
+                >
+                  <div className="text-sm">
+                    <span className="font-semibold">
+                      {t.kind === "success" ? "Success" : t.kind === "error" ? "Error" : "Info"}
+                    </span>
+                    <span className="ml-2 text-secondary dark:text-slate-300">{t.msg}</span>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </ToastContext.Provider>
+      );
+    }
+
+    /** ------------------------------
+     * Notifications (real-time-ish)
+     * ------------------------------ */
+    function NotifProvider({ children }: { children: any }) {
+      const [items, setItems] = React.useState(() => ([
+        { id: uid(), title: "New enrollment", body: "Student 12 joined React Foundations.", ts: Date.now() - 1000*60*6, read: false },
+        { id: uid(), title: "Report ready", body: "Monthly analytics export is available.", ts: Date.now() - 1000*60*18, read: false },
+        { id: uid(), title: "Security notice", body: "Unusual login attempt blocked.", ts: Date.now() - 1000*60*52, read: true },
+      ]));
+
+      // Simulate periodic notifications
+      React.useEffect(() => {
+        const t = window.setInterval(() => {
+          setItems(prev => {
+            const n = { id: uid(), title: "Content updated", body: "A lesson was published to a course.", ts: Date.now(), read: false };
+            return [n, ...prev].slice(0, 12);
+          });
+        }, 28000);
+        return () => window.clearInterval(t);
+      }, []);
+
+      const count = items.filter(i => !i.read).length;
+      const markAllRead = () => setItems(prev => prev.map(i => ({...i, read: true})));
+      const add = (title: string, body: string) => setItems(prev => [{ id: uid(), title, body, ts: Date.now(), read: false }, ...prev]);
+
+      return (
+        <NotifContext.Provider value={{ count, items, markAllRead, add }}>
+          {children}
+        </NotifContext.Provider>
+      );
+    }
+
+    /** ------------------------------
+     * UI Primitives
+     * ------------------------------ */
+    function Icon({ name }: { name: string }) {
+      // Minimal inline icons (no external deps)
+      const cls = "h-5 w-5";
+      switch (name) {
+        case "bell": return (
+          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path d="M18 8a6 6 0 10-12 0c0 7-3 7-3 7h18s-3 0-3-7"></path>
+            <path d="M13.73 21a2 2 0 01-3.46 0"></path>
+          </svg>
+        );
+        case "moon": return (
+          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"></path>
+          </svg>
+        );
+        case "sun": return (
+          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+          </svg>
+        );
+        case "search": return (
+          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="M21 21l-4.3-4.3"></path>
+          </svg>
+        );
+        case "plus": return (
+          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+        );
+        case "download": return (
+          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <path d="M7 10l5 5 5-5"></path>
+            <path d="M12 15V3"></path>
+          </svg>
+        );
+        case "edit": return (
+          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+          </svg>
+        );
+        default: return <span className="inline-block h-5 w-5" aria-hidden="true" />;
+      }
+    }
+
+    function Badge({ tone, children }: { tone: "blue"|"green"|"slate"|"amber"|"rose"; children: any }) {
+      const cls =
+        tone === "green" ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-900" :
+        tone === "blue" ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-900" :
+        tone === "amber" ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-900" :
+        tone === "rose" ? "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-900" :
+        "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900/60 dark:text-slate-200 dark:border-slate-800";
+
+      return (
+        <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${cls}`}>
+          {children}
+        </span>
+      );
+    }
+
+    function Button({
+      children, onClick, variant="primary", disabled=false, leftIcon, ariaLabel, type="button"
+    }: {
+      children: any;
+      onClick?: () => void;
+      variant?: "primary"|"secondary"|"ghost"|"danger";
+      disabled?: boolean;
+      leftIcon?: any;
+      ariaLabel?: string;
+      type?: "button"|"submit";
+    }) {
+      const base = "inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition duration-300 ease-smooth focus-ring disabled:opacity-50 disabled:cursor-not-allowed";
+      const cls =
+        variant === "primary" ? "bg-primary text-white hover:opacity-90" :
+        variant === "secondary" ? "bg-slate-100 text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-50 dark:hover:bg-slate-700" :
+        variant === "danger" ? "bg-rose-600 text-white hover:opacity-90" :
+        "bg-transparent text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800";
+
+      return (
+        <button type={type} aria-label={ariaLabel} className={`${base} ${cls}`} onClick={onClick} disabled={disabled}>
+          {leftIcon}{children}
+        </button>
+      );
+    }
+
+    function Card({ children, className="" }: { children: any; className?: string }) {
+      return (
+        <div className={`rounded-xl border border-slate-200 bg-white shadow-soft dark:border-slate-800 dark:bg-slate-900 ${className}`}>
+          {children}
         </div>
-    </div>
+      );
+    }
 
-    <div class="dashboard-section">
-        <h2 class="section-header">Students</h2>
-        <!-- Student data table goes here -->
-        <table class="student-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Enrollment Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>User Name</td>
-                    <td>user@example.com</td>
-                    <td><span class="enrollment-status-badge" style="background-color: #10b981;">Enrolled</span></td>
-                    <td><button class="action-button">View Profile</button></td>
-                </tr>
-                <!-- More student rows -->
-            </tbody>
-        </table>
-    </div>
-</div>
+    function Modal({ open, title, onClose, children }: { open: boolean; title: string; onClose: () => void; children: any }) {
+      React.useEffect(() => {
+        const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+        if (open) window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+      }, [open, onClose]);
 
-<script>
-    // Basic JavaScript for interactivity (e.g., hover effects, animations)
-    document.querySelectorAll('.course-card').forEach(card => {
-        card.addEventListener('mouseenter', () => {
-            card.style.transform = 'scale(1.05)';
+      return (
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              className="fixed inset-0 z-[9998] flex items-center justify-center p-4"
+              role="dialog"
+              aria-modal="true"
+              aria-label={title}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <div className="absolute inset-0 bg-slate-950/30" onClick={onClose} aria-hidden="true"></div>
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                transition={{ duration: 0.25 }}
+                className="relative w-full max-w-2xl rounded-xl border border-slate-200 bg-white p-4 shadow-soft dark:border-slate-800 dark:bg-slate-900"
+              >
+                <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3 dark:border-slate-800">
+                  <div className="text-base font-semibold">{title}</div>
+                  <Button variant="ghost" onClick={onClose} ariaLabel="Close modal">✕</Button>
+                </div>
+                <div className="pt-4">{children}</div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      );
+    }
+
+    function Input({
+      label, value, onChange, placeholder, leftIcon, ariaLabel, id, type="text"
+    }: {
+      label?: string;
+      value: string;
+      onChange: (v: string) => void;
+      placeholder?: string;
+      leftIcon?: any;
+      ariaLabel?: string;
+      id?: string;
+      type?: string;
+    }) {
+      const inputId = id || uid();
+      return (
+        <label className="block">
+          {label && <span className="mb-1 block text-xs font-semibold text-secondary dark:text-slate-300">{label}</span>}
+          <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm transition duration-300 ease-smooth focus-within:border-primary dark:border-slate-800 dark:bg-slate-950">
+            {leftIcon}
+            <input
+              id={inputId}
+              aria-label={ariaLabel || label}
+              className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder={placeholder}
+              type={type}
+            />
+          </div>
+        </label>
+      );
+    }
+
+    function Select({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string)=>void; options: {label: string; value: string}[] }) {
+      return (
+        <label className="block">
+          <span className="mb-1 block text-xs font-semibold text-secondary dark:text-slate-300">{label}</span>
+          <select
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm transition duration-300 ease-smooth focus-ring dark:border-slate-800 dark:bg-slate-950"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+          >
+            {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        </label>
+      );
+    }
+
+    /** ------------------------------
+     * Layout
+     * ------------------------------ */
+    type PageKey = "dashboard"|"courses"|"students"|"content"|"analytics";
+
+    function AppShell() {
+      const t = useT();
+      const { dark, toggle } = useTheme();
+      const { user, setRole } = useAuth();
+      const notifs = useNotifs();
+
+      const [page, setPage] = React.useState<PageKey>("dashboard");
+      const [cmd, setCmd] = React.useState(""); // global search command
+      const [notifOpen, setNotifOpen] = React.useState(false);
+
+      // Keyboard navigation: Alt+1..5 for tabs, / for search
+      React.useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+          if (e.key === "/" && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+            e.preventDefault();
+            const el = document.getElementById("globalSearch") as HTMLInputElement | null;
+            el?.focus();
+          }
+          if (e.altKey) {
+            const map: Record<string, PageKey> = { "1":"dashboard","2":"courses","3":"students","4":"content","5":"analytics" };
+            if (map[e.key]) setPage(map[e.key]);
+          }
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+      }, []);
+
+      const NavItem = ({k, label, hotkey}:{k:PageKey; label:string; hotkey:string}) => (
+        <button
+          className={[
+            "w-full text-left rounded-lg px-3 py-2 text-sm font-semibold transition duration-300 ease-smooth focus-ring",
+            page === k
+              ? "bg-blue-50 text-primary dark:bg-blue-950/50"
+              : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+          ].join(" ")}
+          onClick={() => setPage(k)}
+          role="tab"
+          aria-selected={page === k}
+        >
+          <span className="flex items-center justify-between">
+            <span>{label}</span>
+            <span className="text-xs text-secondary dark:text-slate-400">Alt+{hotkey}</span>
+          </span>
+        </button>
+      );
+
+      return (
+        <div className="min-h-full">
+          {/* Top Bar */}
+          <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur dark:border-slate-800 dark:bg-slate-950/60">
+            <div className="mx-auto max-w-7xl px-4">
+              <div className="flex h-16 items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-soft">
+                    <span className="text-sm font-bold">CO</span>
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold leading-5">{t("appName")}</div>
+                    <div className="text-xs text-secondary dark:text-slate-400">Modern course management</div>
+                  </div>
+                </div>
+
+                <div className="hidden md:block w-[420px]">
+                  <Input
+                    id="globalSearch"
+                    ariaLabel="Global search"
+                    value={cmd}
+                    onChange={setCmd}
+                    placeholder={`${t("search")}… (press /)`}
+                    leftIcon={<span className="text-secondary"><Icon name="search"/></span>}
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="hidden sm:block">
+                    <Select
+                      label={t("language")}
+                      value={i18next.language?.startsWith("he") ? "he" : "en"}
+                      onChange={(v) => i18next.changeLanguage(v)}
+                      options={[{label:"English",value:"en"},{label:"עברית",value:"he"}]}
+                    />
+                  </div>
+
+                  <div className="hidden sm:block">
+                    <Select
+                      label={t("role")}
+                      value={user.role}
+                      onChange={(v) => setRole(v as Role)}
+                      options={[
+                        {label:"Admin", value:"admin"},
+                        {label:"Instructor", value:"instructor"},
+                        {label:"Viewer", value:"viewer"},
+                      ]}
+                    />
+                  </div>
+
+                  <Button
+                    variant="secondary"
+                    ariaLabel={t("darkMode")}
+                    onClick={toggle}
+                    leftIcon={<span className="text-slate-700 dark:text-slate-200">{dark ? <Icon name="sun"/> : <Icon name="moon"/>}</span>}
+                  >
+                    <span className="hidden md:inline">{t("darkMode")}</span>
+                  </Button>
+
+                  <button
+                    className="relative inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold shadow-sm transition duration-300 ease-smooth hover:bg-slate-50 focus-ring dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900"
+                    aria-label={t("notifications")}
+                    onClick={() => setNotifOpen(o => !o)}
+                  >
+                    <Icon name="bell"/>
+                    {notifs.count > 0 && (
+                      <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-xs font-bold text-white">
+                        {notifs.count}
+                      </span>
+                    )}
+                  </button>
+
+                  <div className="hidden md:flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                    <img
+                      src={user.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`}
+                      alt=""
+                      className="h-7 w-7 rounded-full"
+                      loading="lazy"
+                    />
+                    <div className="leading-tight">
+                      <div className="text-xs font-semibold">{user.name}</div>
+                      <div className="text-[11px] text-secondary dark:text-slate-400">{user.email}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Notifications panel */}
+            <AnimatePresence>
+              {notifOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2 }}
+                  className="mx-auto max-w-7xl px-4 pb-4"
+                >
+                  <Card className="p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="text-sm font-semibold">{t("notifications")}</div>
+                      <div className="flex gap-2">
+                        <Button variant="secondary" onClick={() => notifs.markAllRead()}>{t("reset")}</Button>
+                        <Button variant="ghost" onClick={() => setNotifOpen(false)}>{t("close")}</Button>
+                      </div>
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      {notifs.items.slice(0, 6).map(n => (
+                        <div key={n.id} className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-800">
+                          <div>
+                            <div className="text-sm font-semibold">
+                              {n.title} {!n.read && <Badge tone="green">New</Badge>}
+                            </div>
+                            <div className="mt-1 text-sm text-secondary dark:text-slate-300">{n.body}</div>
+                          </div>
+                          <div className="text-xs text-secondary dark:text-slate-400">{fmtRelative(n.ts)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </header>
+
+          <div className="mx-auto max-w-7xl px-4">
+            <div className="grid grid-cols-12 gap-4 py-6">
+              {/* Sidebar */}
+              <aside className="col-span-12 md:col-span-3 lg:col-span-2">
+                <nav className="sticky top-20" aria-label="Primary">
+                  <Card className="p-2" role="tablist" aria-label="App navigation">
+                    <NavItem k="dashboard" label={t("dashboard")} hotkey="1"/>
+                    <NavItem k="courses" label={t("courses")} hotkey="2"/>
+                    <NavItem k="students" label={t("students")} hotkey="3"/>
+                    <NavItem k="content" label={t("content")} hotkey="4"/>
+                    <NavItem k="analytics" label={t("analytics")} hotkey="5"/>
+                  </Card>
+
+                  <div className="mt-4">
+                    <Card className="p-4">
+                      <div className="text-sm font-semibold">{t("quickActions")}</div>
+                      <div className="mt-3 grid grid-cols-1 gap-2">
+                        <QuickAction action="course:create" label={t("createCourse")} page={page} setPage={setPage}/>
+                        <QuickAction action="student:edit" label={t("addStudent")} page={page} setPage={setPage}/>
+                        <QuickAction action="content:edit" label={t("uploadMedia")} page={page} setPage={setPage}/>
+                        <QuickAction action="export:any" label={t("export")} page={page} setPage={setPage}/>
+                      </div>
+
+                      <div className="mt-4 border-t border-slate-200 pt-4 text-xs text-secondary dark:border-slate-800 dark:text-slate-400">
+                        <div className="font-semibold">Keyboard</div>
+                        <div className="mt-1">Alt+1..5 navigate • / search • Esc closes modals</div>
+                      </div>
+                    </Card>
+                  </div>
+                </nav>
+              </aside>
+
+              {/* Main */}
+              <main id="main" className="col-span-12 md:col-span-9 lg:col-span-10">
+                <ErrorBoundary>
+                  {page === "dashboard" && <Dashboard />}
+                  {page === "courses" && <Courses />}
+                  {page === "students" && <Students />}
+                  {page === "content" && <Content />}
+                  {page === "analytics" && <Analytics />}
+                </ErrorBoundary>
+
+                {/* Footer: “Production notes” */}
+                <div className="mt-8 rounded-xl border border-slate-200 bg-white p-4 text-sm text-secondary shadow-soft dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+                  <div className="font-semibold text-slate-900 dark:text-slate-100">Production-ready architecture (reference)</div>
+                  <div className="mt-2 grid gap-2 md:grid-cols-2">
+                    <div>
+                      <div className="font-semibold">Backend stack</div>
+                      <ul className="mt-1 list-disc pl-5">
+                        <li>Node.js + Express REST API</li>
+                        <li>PostgreSQL + Prisma ORM</li>
+                        <li>JWT auth + refresh tokens</li>
+                        <li>Redis caching + sessions</li>
+                        <li>Rate limiting + security middleware (Helmet, CORS, audit logs)</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <div className="font-semibold">Testing + structure</div>
+                      <ul className="mt-1 list-disc pl-5">
+                        <li>Jest + React Testing Library + MSW (API mocks)</li>
+                        <li>Folder structure: <span className="font-mono text-xs">src/{`{components,pages,hooks,lib,types,styles}`}</span></li>
+                        <li>Error boundaries + query error handling + retries</li>
+                        <li>Code-splitting via route-based lazy loading</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </main>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function QuickAction({ action, label, page, setPage }: { action: any; label: string; page: PageKey; setPage: (p: PageKey)=>void }) {
+      const { user } = useAuth();
+      const toast = useToast();
+      const t = useT();
+
+      const mapActionToPage: Record<string, PageKey> = {
+        "course:create": "courses",
+        "student:edit": "students",
+        "content:edit": "content",
+        "export:any": "analytics",
+      };
+
+      const allowed = can(user.role, action);
+
+      return (
+        <button
+          className={[
+            "w-full rounded-lg border px-3 py-2 text-left text-sm font-semibold transition duration-300 ease-smooth focus-ring",
+            allowed
+              ? "border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900"
+              : "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-500"
+          ].join(" ")}
+          onClick={() => {
+            if (!allowed) return toast.push(t("rbacDenied"), "error");
+            setPage(mapActionToPage[action] || page);
+            toast.push(`Navigated: ${label}`, "info");
+          }}
+          aria-disabled={!allowed}
+        >
+          {label}
+        </button>
+      );
+    }
+
+    /** ------------------------------
+     * Dashboard
+     * ------------------------------ */
+    function Dashboard() {
+      const t = useT();
+      const q = useQuery({
+        queryKey: ["dashboard"],
+        queryFn: api.getDashboard,
+        staleTime: 20_000,
+      });
+
+      React.useEffect(() => {
+        if (!q.data) return;
+        // Charts init
+        const enrollCanvas = document.getElementById("enrollChart") as HTMLCanvasElement | null;
+        const progCanvas = document.getElementById("progressChart") as HTMLCanvasElement | null;
+        if (!enrollCanvas || !progCanvas) return;
+
+        // Destroy previous instances if re-rendered
+        // @ts-ignore
+        if (enrollCanvas._chart) { // @ts-ignore
+          enrollCanvas._chart.destroy();
+        }
+        // @ts-ignore
+        if (progCanvas._chart) { // @ts-ignore
+          progCanvas._chart.destroy();
+        }
+
+        const commonOpts = {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: "rgba(15,23,42,0.92)",
+              titleColor: "#fff",
+              bodyColor: "#e2e8f0",
+              borderColor: "rgba(148,163,184,0.35)",
+              borderWidth: 1,
+              padding: 10,
+              cornerRadius: 10,
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: "#64748b" } },
+            y: { grid: { color: "rgba(148,163,184,0.18)" }, ticks: { color: "#64748b" } }
+          }
+        };
+
+        const enroll = new Chart(enrollCanvas, {
+          type: "line",
+          data: {
+            labels: q.data.enrollByDay.map((d: any) => d.label),
+            datasets: [{
+              label: "Enrollments",
+              data: q.data.enrollByDay.map((d: any) => d.value),
+              borderWidth: 2,
+              pointRadius: 3,
+              tension: 0.35,
+              borderColor: "#2563eb",
+              backgroundColor: "rgba(37,99,235,0.12)",
+              fill: true,
+            }]
+          },
+          options: commonOpts as any
         });
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = 'scale(1)';
+        // @ts-ignore
+        enrollCanvas._chart = enroll;
+
+        const prog = new Chart(progCanvas, {
+          type: "bar",
+          data: {
+            labels: ["0–20","20–40","40–60","60–80","80–100"],
+            datasets: [{
+              label: "Courses",
+              data: q.data.progressBuckets,
+              borderWidth: 0,
+              backgroundColor: "rgba(16,185,129,0.35)",
+            }]
+          },
+          options: {
+            ...commonOpts,
+            scales: {
+              x: { grid: { display: false }, ticks: { color: "#64748b" } },
+              y: { grid: { color: "rgba(148,163,184,0.18)" }, ticks: { color: "#64748b" }, beginAtZero: true }
+            }
+          } as any
         });
-    });
+        // @ts-ignore
+        progCanvas._chart = prog;
+      }, [q.data]);
 
-    // More JavaScript for additional functionality (e.g., AJAX requests)
-</script>
+      return (
+        <div>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold"> {t("dashboard")} </h1>
+              <p className="mt-1 text-sm text-secondary dark:text-slate-300">
+                Professional overview with live widgets, charts and activity stream.
+              </p>
+            </div>
+            <div className="hidden sm:flex gap-2">
+              <Button variant="secondary" leftIcon={<Icon name="download" />} onClick={() => downloadText("dashboard-summary.txt", "Exported dashboard summary...")}>
+                {t("export")}
+              </Button>
+              <Button variant="primary" leftIcon={<Icon name="plus" />} onClick={() => alert("Demo: open create modal in Courses")}>
+                {t("createCourse")}
+              </Button>
+            </div>
+          </div>
 
-</body>
-</html>
+          {/* Metrics (12-col grid) */}
+          <div className="mt-6 grid grid-cols-12 gap-4">
+            <MetricCard span="col-span-12 sm:col-span-6 lg:col-span-3" loading={q.isLoading}
+              title="Total courses" value={q.data?.metrics.totalCourses ?? 0} tone="blue" />
+            <MetricCard span="col-span-12 sm:col-span-6 lg:col-span-3" loading={q.isLoading}
+              title="Total students" value={q.data?.metrics.totalStudents ?? 0} tone="slate" />
+            <MetricCard span="col-span-12 sm:col-span-6 lg:col-span-3" loading={q.isLoading}
+              title="Active enrollments" value={q.data?.metrics.activeEnrollments ?? 0} tone="green" />
+            <MetricCard span="col-span-12 sm:col-span-6 lg:col-span-3" loading={q.isLoading}
+              title="Avg completion" value={q.data ? `${Math.round(q.data.metrics.completionAvg*100)}%` : "—"} tone="emerald" />
+          </div>
+
+          <div className="mt-4 grid grid-cols-12 gap-4">
+            <Card className="col-span-12 lg:col-span-7 p-4">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-semibold">Weekly enrollments</div>
+                <Badge tone="blue">Real-time</Badge>
+              </div>
+              <div className="mt-4 chart-wrap h-[260px]">
+                {q.isLoading ? <SkeletonChart/> : <canvas id="enrollChart" aria-label="Enrollments chart" role="img"></canvas>}
+              </div>
+            </Card>
+
+            <Card className="col-span-12 lg:col-span-5 p-4">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-semibold">Course progress distribution</div>
+                <Badge tone="green">Live</Badge>
+              </div>
+              <div className="mt-4 chart-wrap h-[260px]">
+                {q.isLoading ? <SkeletonChart/> : <canvas id="progressChart" aria-label="Progress distribution chart" role="img"></canvas>}
+              </div>
+            </Card>
+
+            <Card className="col-span-12 p-4">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-semibold">Recent activity</div>
+                <span className="text-xs text-secondary dark:text-slate-400">Updated {q.data ? fmtRelative(Date.now() - 1000*60*1) : "—"} ago</span>
+              </div>
+              <div className="mt-4 space-y-2">
+                {q.isLoading ? (
+                  <div className="space-y-2">
+                    {Array.from({length: 4}).map((_,i)=>(
+                      <div key={i} className="flex items-center gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-800">
+                        <div className="h-9 w-9 rounded-full skeleton"></div>
+                        <div className="flex-1">
+                          <div className="h-4 w-2/3 rounded skeleton"></div>
+                          <div className="mt-2 h-3 w-1/3 rounded skeleton"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  q.data.activity.map((a: ActivityItem) => (
+                    <div key={a.id} className="flex items-center gap-3 rounded-lg border border-slate-200 p-3 transition duration-300 ease-smooth hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/40">
+                      <img
+                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(a.userName || a.type)}`}
+                        alt=""
+                        className="h-9 w-9 rounded-full"
+                        loading="lazy"
+                      />
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold">{a.message}</div>
+                        <div className="mt-1 text-xs text-secondary dark:text-slate-400">
+                          {a.userName ? `by ${a.userName}` : "system"} • {fmtRelative(a.timestamp)} ago
+                        </div>
+                      </div>
+                      <Badge tone={a.type === "system" ? "slate" : a.type === "course" ? "blue" : a.type === "student" ? "green" : "amber"}>
+                        {a.type}
+                      </Badge>
+                    </div>
+                  ))
+                )}
+              </div>
+            </Card>
+          </div>
+        </div>
+      );
+    }
+
+    function MetricCard({ title, value, tone, loading, span }: { title: string; value: any; tone: string; loading: boolean; span: string }) {
+      const gradient =
+        tone === "blue" ? "from-blue-600/12 to-blue-600/0" :
+        tone === "green" ? "from-emerald-600/12 to-emerald-600/0" :
+        tone === "emerald" ? "from-emerald-500/14 to-emerald-500/0" :
+        "from-slate-600/12 to-slate-600/0";
+
+      return (
+        <Card className={`${span} p-4 bg-gradient-to-br ${gradient}`}>
+          <div className="text-xs font-semibold text-secondary dark:text-slate-300">{title}</div>
+          <div className="mt-2 text-2xl font-semibold">
+            {loading ? <span className="inline-block h-7 w-28 rounded skeleton align-middle"></span> : value}
+          </div>
+          <div className="mt-2 text-xs text-secondary dark:text-slate-400">
+            Trend: <span className="font-semibold text-accent">+{Math.round(5 + Math.random()*14)}%</span> vs last period
+          </div>
+        </Card>
+      );
+    }
+
+    function SkeletonChart() {
+      return (
+        <div className="h-full w-full rounded-lg border border-slate-200 p-3 dark:border-slate-800">
+          <div className="h-4 w-1/3 rounded skeleton"></div>
+          <div className="mt-4 h-[200px] w-full rounded skeleton"></div>
+        </div>
+      );
+    }
+
+    /** ------------------------------
+     * Courses (cards, DnD reorder, bulk, filter chips, debounced search)
+     * ------------------------------ */
+    function Courses() {
+      const t = useT();
+      const toast = useToast();
+      const { user } = useAuth();
+      const qc = useQueryClient();
+
+      const q = useQuery({ queryKey: ["courses"], queryFn: api.listCourses, staleTime: 10_000 });
+
+      const reorderMut = useMutation({
+        mutationFn: api.reorderCourses,
+        onSuccess: () => {
+          qc.invalidateQueries({ queryKey: ["courses"] });
+          toast.push(t("toasts.updated"), "success");
+        }
+      });
+
+      const createMut = useMutation({
+        mutationFn: api.createCourse,
+        onSuccess: () => {
+          qc.invalidateQueries({ queryKey: ["courses"] });
+          toast.push(t("toasts.saved"), "success");
+        }
+      });
+
+      const [search, setSearch] = React.useState("");
+      const [debounced, setDebounced] = React.useState("");
+      const updateDebounced = React.useMemo(() => debounce((v: string) => setDebounced(v), 250), []);
+      React.useEffect(() => updateDebounced(search), [search]);
+
+      const [chip, setChip] = React.useState<string>("All");
+      const chips = ["All", "Beginner", "Intermediate", "Advanced", "Popular"];
+
+      const [selected, setSelected] = React.useState<Set<string>>(new Set());
+      const allSelected = q.data && selected.size > 0 && selected.size === q.data.length;
+
+      const [createOpen, setCreateOpen] = React.useState(false);
+
+      // DnD reorder
+      const [dragId, setDragId] = React.useState<string | null>(null);
+
+      const filtered = (q.data || []).filter(c => {
+        const s = debounced.trim().toLowerCase();
+        const matchesSearch = !s || c.title.toLowerCase().includes(s) || c.description.toLowerCase().includes(s);
+        const matchesChip = chip === "All" || c.tags.includes(chip);
+        return matchesSearch && matchesChip;
+      });
+
+      const doExport = () => {
+        if (!can(user.role, "export:any")) return toast.push(t("rbacDenied"), "error");
+        const csv = ["id,title,progress,tags,updatedAt"]
+          .concat(filtered.map(c => `${c.id},"${c.title.replaceAll('"','""')}",${Math.round(c.progress*100)},"${c.tags.join("|*
